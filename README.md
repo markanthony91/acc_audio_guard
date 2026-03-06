@@ -2,59 +2,86 @@
 
 **Codinome: ORFEU** (O Guardião da Harmonia Sonora)
 
-O **ACC Audio Guard** é uma solução em Go para cancelamento de ruído 100% offline, projetada especificamente para ambientes críticos de Drive-Thru no Burger King. Ele substitui dependências de nuvem (como o Krisp) por um motor de processamento local baseado em redes neurais leves.
+O **ACC Audio Guard** é uma solução em Go para cancelamento de ruído 100% offline, projetada para ambientes críticos de Drive-Thru. O objetivo é substituir dependências de nuvem por um motor local com baixa latência.
 
-## 🚀 Visão Geral
-Em ambientes de alta rotatividade e instabilidade de rede, a dependência de autenticação em nuvem para ferramentas de áudio é um risco operacional. O **ORFEU** atua como um driver de áudio inteligente que filtra ruídos de motores, vento e cozinha, entregando voz limpa para o sistema de VoIP (MicroSIP), sem nunca precisar de internet.
+## Status da Fase 1
 
-## 🏗️ Arquitetura Técnica
-O sistema funciona como uma ponte de áudio entre o hardware físico e um driver virtual:
+- [x] Esqueleto da aplicação CLI com ciclo de vida e shutdown gracioso.
+- [x] Pipeline de processamento em tempo real (ticker por frame) com fonte sintética para validação.
+- [x] Métricas de latência por execução (frames, média, máximo e total de processamento).
+- [x] Wrapper RNNoise preparado via CGO com build tag `rnnoise`.
+- [ ] Integração de captura de microfone físico (backend real de áudio).
+- [ ] Validação de latência fim-a-fim com áudio real (`< 20ms`).
 
-1.  **Captura (Input):** O motor em Go captura o áudio bruto do microfone físico (Jabra/Logitech).
-2.  **Processamento (Engine):** O áudio passa pela biblioteca **RNNoise** (Recurrent Neural Network Noise Suppression), que limpa o ruído preservando a voz.
-3.  **Injeção (Output):** O áudio limpo é injetado em um **Cabo de Áudio Virtual** (VB-CABLE).
-4.  **Consumo:** O MicroSIP é configurado para escutar o "Cabo Virtual", recebendo o áudio já tratado.
+## Arquitetura Inicial
 
-## 🛠️ Stack Tecnológica
-- **Linguagem:** Go (Golang) 1.23+
-- **Filtro:** RNNoise (C-based RNN) via CGO.
-- **Interface:** Wails (Go + Vite/React) para a GUI de seleção de dispositivos.
-- **Áudio:** PortAudio ou Miniaudio para baixa latência.
-- **SO Alvo:** Windows 10/11 (BK Kiosks).
+1. **Entrada (`cmd/orfeu`)**: bootstrap e sinais do sistema.
+2. **App (`internal/app`)**: valida configuração e orquestra runtime.
+3. **Pipeline (`internal/audio`)**: loop real-time por frame + estatísticas.
+4. **RNNoise (`internal/rnnoise`)**: contrato + implementação CGO opcional.
+5. **Dispositivos (`internal/device`)**: stub para descoberta de hardware.
+6. **Logging (`internal/logx`)**: logs com módulo e `hostname`.
 
-## 🗺️ Roadmap de Desenvolvimento
+## Ambiente Nix (todos os comandos previstos)
 
-### Fase 1: Fundação & Engine (Atual) 🏗️
-- [ ] Implementar wrapper Go para RNNoise (CGO).
-- [ ] Teste de captura e processamento em tempo real (CLI).
-- [ ] Validação de latência (Meta: < 20ms).
+Este projeto já inclui:
+- `flake.nix` para `nix develop`
+- `shell.nix` para `nix-shell`
 
-### Fase 2: Roteamento de Áudio 🎧
-- [ ] Integração com PortAudio/Miniaudio.
-- [ ] Mapeamento automático de dispositivos de entrada/saída.
-- [ ] Verificação de presença do Driver Virtual (VB-CABLE).
+Ambos expõem os comandos: `go`, `gofmt`, `go test`, `pkg-config`, `wails`, toolchain CGO e libs (`rnnoise`, `portaudio`).
 
-### Fase 3: Interface de Usuário (GUI) 🖥️
-- [ ] Desenvolvimento da GUI via Wails.
-- [ ] Seletores dinâmicos de Microfone/Saída.
-- [ ] Indicador visual de "Noise Floor" e "Voice Activity".
-
-### Fase 4: Estabilização & Deploy 🛡️
-- [ ] Implementação como Windows Service (Daemon).
-- [ ] Monitoramento de saúde (Auto-restart em caso de falha de driver).
-- [ ] Empacotamento para instalação silenciosa (MSI/EXE).
-
-## 🛠️ Comandos de Desenvolvimento
 ```bash
-# Entrar no ambiente
+# Flakes
 nix develop
 
-# Executar em modo desenvolvimento
-go run main.go
+# Sem flakes
+nix-shell
+```
 
-# Build para Windows
+## Comandos de Desenvolvimento
+
+```bash
+# Rodar em modo padrão (dry-run com fonte sintética)
+go run ./cmd/orfeu --duration-sec=10
+
+# Rodar testes
+go test ./...
+
+# Verificar RNNoise no shell
+pkg-config --modversion rnnoise
+
+# Build com RNNoise real (requer librnnoise no ambiente)
+go run -tags rnnoise ./cmd/orfeu --dry-run=false --duration-sec=10
+
+# Build GUI (fase futura)
 wails build -platform windows/amd64
 ```
+
+## Estrutura
+
+```text
+acc_audio_guard/
+  cmd/orfeu/main.go
+  internal/app/app.go
+  internal/audio/pipeline.go
+  internal/audio/pipeline_test.go
+  internal/audio/source.go
+  internal/config/config.go
+  internal/config/config_test.go
+  internal/device/device.go
+  internal/logx/logx.go
+  internal/rnnoise/types.go
+  internal/rnnoise/engine_stub.go
+  internal/rnnoise/engine_cgo.go
+  flake.nix
+  shell.nix
+```
+
+## Próximos Passos (Fase 1 restante)
+
+1. Integrar captura/injeção real com PortAudio ou Miniaudio.
+2. Rodar benchmark com microfone físico + VB-CABLE.
+3. Fechar relatório de latência de ponta a ponta com meta `< 20ms`.
 
 ---
 *Projeto integrante do ecossistema Sistemas - Marcelo*

@@ -1,30 +1,27 @@
-# ACC Audio Guard - GEMINI.md
-**Codinome: ORFEU** (O Guardião da Harmonia Sonora)
+# ACC Audio Guard - GEMINI References
 
-Este agente é uma solução em Go para cancelamento de ruído local (offline-first) em ambientes críticos Burger King (Windows 11 22H2).
+## Fonte principal
+- [README.md](./README.md)
 
-## 🚀 Padrões de Implementação
-- **Tecnologia:** Go (Golang) + CGO (RNNoise).
-- **Lógica:** Redes neurais leves para supressão de ruído ambiental.
-- **Interface:** Wails v2 (GUI moderna e minimalista).
-- **Modo:** Windows Service (Background Process) + GUI (System Tray).
-- **GitHub:** SEMPRE preencher a descrição ("About") do repositório via `gh repo edit`.
-- **Objetivo:** Filtrar áudio de microfones físicos (Jabra/Logitech) e injetar em drivers virtuais (VB-CABLE).
+## Entradas e runtime
+- [cmd/orfeu/main.go](./cmd/orfeu/main.go)
+- [internal/app/app.go](./internal/app/app.go)
 
-## 📊 Estatísticas
-| Métrica | Valor |
-|---------|-------|
-| Versão | 0.1.0 |
-| Latência Alvo | < 20ms |
-| RAM Alvo | ~10-15MB |
-| Testes | Unitários e Stress de Áudio |
+## Pipeline e áudio
+- [internal/audio/pipeline.go](./internal/audio/pipeline.go)
+- [internal/audio/source.go](./internal/audio/source.go)
+- [internal/audio/pipeline_test.go](./internal/audio/pipeline_test.go)
 
-## 🗺️ Roadmap & Progresso
-- [x] Definição de arquitetura e tecnologia (Fase 1).
-- [ ] Implementação do wrapper RNNoise em Go.
-- [ ] Teste de conceito de áudio em tempo real.
-- [ ] GUI Wails para configuração de dispositivos.
-- [ ] Empacotamento para Windows.
+## Configuração
+- [internal/config/config.go](./internal/config/config.go)
+- [internal/config/config_test.go](./internal/config/config_test.go)
 
----
-*Atualizado em 06 de Março de 2026*
+## RNNoise
+- [internal/rnnoise/types.go](./internal/rnnoise/types.go)
+- [internal/rnnoise/engine_stub.go](./internal/rnnoise/engine_stub.go)
+- [internal/rnnoise/engine_cgo.go](./internal/rnnoise/engine_cgo.go)
+- [internal/rnnoise/engine_stub_test.go](./internal/rnnoise/engine_stub_test.go)
+
+## Ambiente
+- [flake.nix](./flake.nix)
+- [shell.nix](./shell.nix)
