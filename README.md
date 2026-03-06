@@ -83,5 +83,19 @@ acc_audio_guard/
 2. Rodar benchmark com microfone físico + VB-CABLE.
 3. Fechar relatório de latência de ponta a ponta com meta `< 20ms`.
 
+## Roadmap (Fases seguintes)
+
+### Fase 2: Integração com Sistema
+
+1. Modo **headless** para execução contínua sem CLI interativa.
+2. Execução como serviço do sistema (Windows Service).
+3. API local de controle e status (localhost/IPC) para integração com outros módulos.
+
+### Fase 3: Interface e Operação
+
+1. GUI Wails para configuração de dispositivos e diagnóstico.
+2. Health checks e telemetria local para suporte operacional.
+3. Empacotamento e instalação silenciosa para rollout em escala.
+
 ---
 *Projeto integrante do ecossistema Sistemas - Marcelo*
